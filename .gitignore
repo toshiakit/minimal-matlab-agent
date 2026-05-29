@@ -1,0 +1,15 @@
+# Local planning and machine-specific launch scripts
+PLAN.md
+run_agent_runtime.m
+
+# MATLAB generated files
+*.asv
+*.m~
+
+# Python generated files
+__pycache__/
+*.pyc
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
