@@ -1,16 +1,23 @@
 # Minimal Agent SDK Prototype
 
-This is a minimal MATLAB coding-agent prototype built with `ai-agent-sdk` and Ollama.
+This is a minimal MATLAB coding-agent prototype built with MATLAB AI Agent SDK and Ollama.
 
 The SDK owns the LLM client, message history, and agentic tool-calling loop. This project keeps a small stdio MCP bridge so the agent can use MATLAB MCP Core Server tools from SDK-local wrapper tools.
+
+## Disclaimer
+
+This is a personal, exploratory project. It is intended as a learning example for understanding agentic AI workflows in MATLAB, not as recommended architecture or production guidance.
+
+The prototype uses MATLAB MCP Core Server from within MATLAB through a small Python stdio bridge. This is not an architecture recommended for practical systems: using MATLAB to call MATLAB code through MCP adds unnecessary complexity and overhead.
+
+The goal is to make agentic workflows more transparent for MATLAB users who want to understand how a coding-agent loop can be assembled from familiar MATLAB pieces, especially in local or privacy-conscious workflows.
 
 ## Requirements
 
 - MATLAB R2026a or later
-- `ai-agent-sdk` on the MATLAB path, or configured in `config.json`
+- MATLAB AI Agent SDK installed in the standard Add-Ons location and on the MATLAB path
 - Ollama running locally or available through a remote Ollama-compatible endpoint
-- MATLAB MCP Core Server executable
-- Text Analytics Toolbox, required by the current `ai-agent-sdk` dependency path
+- MATLAB MCP Core Server installed in the standard agentic-toolkits location
 - Python available from MATLAB, used by `mcp/mcp_stdio.py` to manage stdio communication with the MCP server. Use a Python version supported by your MATLAB release; no extra Python packages are required.
 
 ## Configure
@@ -33,13 +40,12 @@ Edit `config.json`:
 {
     "model": "qwen3:8b",
     "ollama_endpoint": "http://127.0.0.1:11434",
-    "sdk_path": "",
-    "mcp_server_path": "",
-    "matlab_root": ""
+    "max_tokens": 8192,
+    "timeout": 600,
+    "max_iterations": 10,
+    "verbose": false
 }
 ```
-
-Leave `sdk_path` empty if `ai-agent-sdk` is already on the MATLAB path. Leave `matlab_root` empty to use the current MATLAB installation.
 
 ## Run
 
@@ -61,16 +67,6 @@ Run one prompt and return without entering the REPL:
 agent(Prompt="List files in the current directory.")
 ```
 
-Override local setup paths without editing `config.json`:
-
-```matlab
-agent( ...
-    Endpoint="http://your-ollama-host:11434", ...
-    Model="qwen3-coder:30b-100k", ...
-    McpServerPath="path/to/matlab-mcp-core-server", ...
-    SdkPath="path/to/ai-agent-sdk")
-```
-
 Type `quit` or `exit` to leave the session.
 
 ## Tools
@@ -89,6 +85,8 @@ MCP-backed MATLAB tools:
 - `check_matlab_code`
 - `run_matlab_file`
 - `run_matlab_test_file`
+
+These MCP-backed tools use the local stdio bridge in `mcp/`. The SDK's direct MCP tool wrapper expects an HTTP MCP client, so this bridge remains part of the project for stdio-based MATLAB MCP Core Server integration.
 
 ## Project Layout
 

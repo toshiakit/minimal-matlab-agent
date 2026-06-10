@@ -1,5 +1,5 @@
 function agent(options)
-%AGENT Minimal MATLAB coding agent prototype using ai-agent-sdk and Ollama.
+%AGENT Minimal MATLAB coding agent prototype using MATLAB AI Agent SDK and Ollama.
 %   agent
 %   agent(Model="qwen3-coder:30b-100k")
 %   agent(Endpoint="http://your-ollama-host:11434")
@@ -8,9 +8,6 @@ function agent(options)
     arguments
         options.Model (1,1) string = ""
         options.Endpoint (1,1) string = ""
-        options.SdkPath (1,1) string = ""
-        options.McpServerPath (1,1) string = ""
-        options.MatlabRoot (1,1) string = ""
         options.Prompt (1,1) string = ""
         options.Verbose (1,1) logical = false
     end
@@ -23,7 +20,7 @@ function agent(options)
     addpath(fullfile(projectDir, "mcp"));
 
     cfg = load_config();
-    add_sdk_path(resolve_option(options.SdkPath, cfg, "sdk_path"));
+    assert_sdk_available();
 
     model = options.Model;
     if model == ""
@@ -35,19 +32,17 @@ function agent(options)
         endpoint = string(cfg.ollama_endpoint);
     end
 
-    client = aisdk.llmClient("ollama", model, ...
+    client = aisdk.LLMClient("ollama", model, ...
         MaxNumTokens=cfg.max_tokens, ...
         TimeOut=cfg.timeout, ...
         BaseURL=endpoint);
 
-    mcpServerPath = resolve_option(options.McpServerPath, cfg, "mcp_server_path");
-    matlabRoot = resolve_option(options.MatlabRoot, cfg, "matlab_root");
-    mcpClient = connect_mcp(mcpServerPath, matlabRoot);
+    mcpClient = connect_mcp();
     cleanup = onCleanup(@() disconnect(mcpClient));
 
     workspace = struct("mcpClient", mcpClient, "projectDir", projectDir);
     tools = get_tools();
-    bot = aisdk.aiAgent(client, get_system_prompt(), tools, ...
+    bot = aisdk.AIAgent(client, get_system_prompt(), tools, ...
         Workspace=workspace, ...
         MaxIterations=cfg.max_iterations, ...
         Verbose=logical(cfg.verbose) || options.Verbose);
@@ -80,25 +75,10 @@ function agent(options)
     end
 end
 
-function add_sdk_path(sdkPath)
-    if sdkPath ~= ""
-        if ~isfolder(sdkPath)
-            error("agent:sdkPathNotFound", ...
-                "SDK path does not exist. Update sdk_path in config.json: %s", sdkPath);
-        end
-        addpath(genpath(sdkPath));
-    end
-
-    if ~exist("aisdk.aiAgent", "class")
+function assert_sdk_available()
+    if ~exist("aisdk.AIAgent", "class")
         error("agent:sdkNotFound", ...
-            "ai-agent-sdk is not on the MATLAB path. Set sdk_path in config.json or add it to the path.");
-    end
-end
-
-function value = resolve_option(optionValue, cfg, fieldName)
-    value = optionValue;
-    if value == "" && isfield(cfg, fieldName)
-        value = string(cfg.(fieldName));
+            "MATLAB AI Agent SDK is not on the MATLAB path. Install it in the standard Add-Ons location or add it to the MATLAB path.");
     end
 end
 

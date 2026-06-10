@@ -1,9 +1,6 @@
 {
     "model": "qwen3:8b",
     "ollama_endpoint": "http://127.0.0.1:11434",
-    "sdk_path": "",
-    "mcp_server_path": "",
-    "matlab_root": "",
     "max_tokens": 8192,
     "timeout": 600,
     "max_iterations": 10,
