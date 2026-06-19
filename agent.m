@@ -19,6 +19,10 @@ function agent(options)
     addpath(fullfile(projectDir, "tools"));
     addpath(fullfile(projectDir, "mcp"));
 
+    run_agent(options, projectDir);
+end
+
+function run_agent(options, projectDir)
     cfg = load_config();
     assert_sdk_available();
 
@@ -38,7 +42,7 @@ function agent(options)
         BaseURL=endpoint);
 
     mcpClient = connect_mcp();
-    cleanup = onCleanup(@() disconnect(mcpClient));
+    cleanup = onCleanup(@() mcpClient.disconnect());
 
     workspace = struct("mcpClient", mcpClient, "projectDir", projectDir);
     tools = get_tools();
@@ -47,8 +51,8 @@ function agent(options)
         MaxIterations=cfg.max_iterations, ...
         Verbose=logical(cfg.verbose) || options.Verbose);
 
-    disp("Minimal Agent SDK Prototype - Ollama (type ""quit"" to exit)");
-    disp("===========================================================");
+    disp("Minimal MATLAB Agent - Ollama (type ""quit"" to exit)");
+    disp("====================================================");
 
     if options.Prompt ~= ""
         run_once(bot, options.Prompt);
