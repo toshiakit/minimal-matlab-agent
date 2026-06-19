@@ -32,7 +32,7 @@ The SDK manages the internal model, tool call, tool result, and follow-up loop.
 
 - MATLAB R2022b or later. This prototype has been tested with MATLAB R2026a.
 - MATLAB AI Agent SDK
-- Ollama running locally or available through a remote Ollama-compatible endpoint
+- Access to [Ollama](https://ollama.com/), either running locally or available through a remote Ollama-compatible endpoint on your network
 - MATLAB MCP Server
 - Python available from MATLAB, used by `mcp/mcp_stdio.py` to manage stdio communication with the MCP server. Use a Python version supported by your MATLAB release; no extra Python packages are required.
 
@@ -96,13 +96,24 @@ The SDK manages the internal model, tool call, tool result, and follow-up loop.
    pyenv(Version="path/to/python")
    ```
 
-6. Install [Ollama](https://ollama.com/) and pull a model.
+6. Configure [Ollama](https://ollama.com/) access.
 
-   This project defaults to `qwen3:8b`, but any Ollama-compatible chat model can be configured in `config.json`.
+   This project defaults to the local Ollama endpoint, `http://127.0.0.1:11434`, but a local Ollama installation is not required if you have access to a remote Ollama-compatible endpoint on your network.
+
+   For local Ollama, install Ollama and pull a model:
 
    ```bash
    ollama pull qwen3:8b
    ollama serve
+   ```
+
+   For remote Ollama, update `config.json` with the remote endpoint URL and a model available on that server:
+
+   ```json
+   {
+       "model": "qwen3.6:35b",
+       "ollama_endpoint": "http://your-ollama-host:11434"
+   }
    ```
 
    Choose an instruction-tuned chat or coding model that supports tool-calling-style workflows. Larger models generally follow multi-step coding instructions better but need more memory and take longer to respond. Avoid embedding models, such as `nomic-embed-text` or `qwen3-embedding`, because they are for vector search rather than chat.
