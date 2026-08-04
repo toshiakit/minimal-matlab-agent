@@ -46,10 +46,19 @@ function run_agent(options, projectDir)
 
     workspace = struct("mcpClient", mcpClient, "projectDir", projectDir);
     tools = get_tools();
-    bot = aisdk.AIAgent(client, get_system_prompt(), tools, ...
+
+    if logical(cfg.verbose) || options.Verbose
+        displayMode = "detailed";
+    else
+        displayMode = "off";
+    end
+
+    bot = aisdk.AIAgent(client, ...
+        SystemPrompt=get_system_prompt(), ...
+        Tools=tools, ...
         Workspace=workspace, ...
         MaxIterations=cfg.max_iterations, ...
-        Verbose=logical(cfg.verbose) || options.Verbose);
+        DisplayMode=displayMode);
 
     disp("Minimal MATLAB Agent - Ollama (type ""quit"" to exit)");
     disp("====================================================");

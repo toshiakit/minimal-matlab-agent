@@ -40,7 +40,7 @@ The SDK manages the internal model, tool call, tool result, and follow-up loop.
 
 1. Install [MATLAB](https://www.mathworks.com/downloads/) R2022b or later.
 
-2. Install the [MATLAB AI Agent SDK](https://github.com/matlab/matlab-ai-agent-sdk).
+2. Install the [MATLAB AI Agent SDK](https://github.com/matlab/matlab-ai-agent-sdk/tree/v0.1.0) (v0.1.0).
 
    Follow the SDK repository's installation instructions. Before running this project, make sure the SDK is on the MATLAB path and that this command returns `8`:
 
