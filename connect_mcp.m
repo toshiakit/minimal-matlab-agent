@@ -1,5 +1,8 @@
-function client = connect_mcp()
-%CONNECT_MCP Start the MATLAB MCP Server and return a stdio client.
+function client = connect_mcp(projectDir)
+%CONNECT_MCP Connect to MATLAB MCP Server using native SDK stdio transport.
+    if nargin == 0
+        projectDir = fileparts(mfilename("fullpath"));
+    end
     serverPath = discover_mcp_server_executable();
 
     if ~isfile(serverPath)
@@ -7,15 +10,32 @@ function client = connect_mcp()
             "MATLAB MCP Server not found: %s", serverPath);
     end
 
-    client = McpClient(serverPath, [ ...
+    client = aisdk.MCPClient([serverPath, ...
         "--matlab-root=" + string(matlabroot), ...
-        "--matlab-display-mode=desktop"]);
+        "--initial-working-folder=" + string(projectDir), ...
+        "--matlab-session-mode=new", ...
+        "--matlab-display-mode=nodesktop"], ...
+        Transport="stdio", TimeOut=120);
 
-    projectDir = string(pwd);
-    escapedProjectDir = strrep(projectDir, "'", "''");
-    client.callTool("evaluate_matlab_code", struct( ...
-        "code", "addpath(genpath('" + escapedProjectDir + "'))", ...
-        "project_path", projectDir));
+    try
+        serverTools = client.Tools;
+        evaluator = serverTools(string({serverTools.Name}) == "evaluate_matlab_code");
+        if isempty(evaluator)
+            error("connect_mcp:missingTool", ...
+                "MATLAB MCP Server does not provide evaluate_matlab_code.");
+        end
+        escapedProjectDir = strrep(string(projectDir), "'", "''");
+        result = evaluate(evaluator, struct( ...
+            "code", "addpath('" + escapedProjectDir + "')", ...
+            "project_path", string(projectDir)));
+        if isfield(result, "isError") && result.isError
+            error("connect_mcp:initializationFailed", ...
+                "MATLAB MCP Server initialization failed: %s", jsonencode(result));
+        end
+    catch exception
+        delete(client);
+        rethrow(exception);
+    end
 end
 
 function serverPath = discover_mcp_server_executable()

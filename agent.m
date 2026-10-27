@@ -17,7 +17,6 @@ function agent(options)
     pathCleanup = onCleanup(@() path(originalPath));
     addpath(projectDir);
     addpath(fullfile(projectDir, "tools"));
-    addpath(fullfile(projectDir, "mcp"));
 
     run_agent(options, projectDir);
 end
@@ -41,11 +40,9 @@ function run_agent(options, projectDir)
         TimeOut=cfg.timeout, ...
         BaseURL=endpoint);
 
-    mcpClient = connect_mcp();
-    cleanup = onCleanup(@() mcpClient.disconnect());
-
-    workspace = struct("mcpClient", mcpClient, "projectDir", projectDir);
-    tools = get_tools();
+    mcpClient = connect_mcp(projectDir);
+    cleanup = onCleanup(@() delete(mcpClient));
+    tools = get_tools(mcpClient);
 
     if logical(cfg.verbose) || options.Verbose
         displayMode = "detailed";
@@ -54,9 +51,11 @@ function run_agent(options, projectDir)
     end
 
     bot = aisdk.AIAgent(client, ...
-        SystemPrompt=get_system_prompt(), ...
+        SystemPrompt=get_system_prompt() + newline + ...
+            "Project root: " + string(projectDir) + newline + ...
+            "Use this absolute project root for project_path in MCP calls. " + ...
+            "Use absolute script_path values for MCP file and test tools.", ...
         Tools=tools, ...
-        Workspace=workspace, ...
         MaxIterations=cfg.max_iterations, ...
         DisplayMode=displayMode);
 

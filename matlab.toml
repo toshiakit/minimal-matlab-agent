@@ -1,0 +1,9 @@
+name = "Minimal MATLAB Agent"
+
+[folders]
+path = [
+    "tools",
+]
+
+[dependencies]
+matlab_ai_agent_sdk = ">=0.4.0"
